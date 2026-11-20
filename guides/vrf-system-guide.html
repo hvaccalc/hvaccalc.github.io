@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VRF 시스템 이해 — 냉난방공조 허브</title>
+<meta name="description" content="VRF 시스템 이해 실무 해설: VRF의 원리와 장단점, 배관 설계와 분기관 설치, 동시 운전율, 시운전 절차를 정리했습니다.">
+<meta name="theme-color" content="#0f172a">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<style>
+:root{--navy:#0f172a;--navy2:#1e293b;--amber:#f59e0b;--amber-dark:#d97706;--amber-bg:#fef3c7;--bg:#f1f5f9;--card:#fff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;--green:#15803d;--green-bg:#dcfce7;--red:#b91c1c;--red-bg:#fee2e2;--radius:14px;--shadow:0 1px 3px rgba(15,23,42,.08),0 4px 14px rgba(15,23,42,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+a{color:var(--amber-dark)}
+header{background:var(--navy);color:#fff;position:sticky;top:0;z-index:50;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.header-in{display:flex;align-items:center;gap:14px;padding:13px 16px;max-width:1080px;margin:0 auto;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;flex:1;min-width:200px}
+.brand .mark{width:38px;height:38px;border-radius:9px;background:var(--amber);color:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;flex:none}
+.brand b{font-size:19px;letter-spacing:.2px}
+.brand b span{color:var(--amber)}
+.brand small{display:block;font-size:11.5px;color:#94a3b8;font-weight:400}
+nav.main-nav{display:flex;gap:4px;flex-wrap:wrap}
+nav.main-nav a{color:#cbd5e1;text-decoration:none;font-size:14px;font-weight:600;padding:8px 11px;border-radius:8px}
+nav.main-nav a:hover{background:var(--navy2);color:#fff}
+.article{padding:26px 0 12px}
+.back{margin-bottom:10px}
+.back a{font-weight:700;text-decoration:none}
+.back a:hover{text-decoration:underline}
+.crumb{font-size:12.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--amber-dark);margin-bottom:6px}
+.article h1{font-size:clamp(26px,4.5vw,34px);line-height:1.25;margin-bottom:10px}
+.lede{font-size:17px;color:#334155;margin-bottom:22px}
+.article h2{font-size:21px;margin:28px 0 8px;padding-top:6px;border-top:2px solid var(--amber);display:inline-block}
+.article h3{font-size:17px;margin:18px 0 6px}
+.article p{font-size:15.5px;color:#1e293b;margin-bottom:12px}
+.article ul,.article ol{margin:0 0 14px 22px;font-size:15.5px;color:#1e293b}
+.article li{margin-bottom:6px}
+.article table{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0 16px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+.article th{background:var(--navy);color:#fff;text-align:left;padding:10px 12px}
+.article td{padding:9px 12px;border-bottom:1px solid var(--border)}
+.article tr:nth-child(even) td{background:#f8fafc}
+.formula{font-size:13.5px;color:var(--muted);background:#fff;border:1px dashed var(--border);border-radius:8px;padding:10px 12px;margin:12px 0}
+.formula code{color:var(--navy);font-weight:600}
+.safety{background:var(--red-bg);border-left:4px solid var(--red);border-radius:10px;padding:14px 16px;margin:22px 0;font-size:14.5px;color:#7f1d1d}
+.related{background:var(--amber-bg);border:1px solid #fde68a;border-radius:12px;padding:16px 18px;margin:22px 0}
+.related h3{font-size:15px;margin:0 0 8px}
+.related ul{margin:0 0 0 20px}
+.related li{margin-bottom:4px}
+footer{background:var(--navy);color:#94a3b8;margin-top:44px;padding:30px 0 26px}
+footer .cols{display:grid;grid-template-columns:1fr;gap:20px}
+@media(min-width:640px){footer .cols{grid-template-columns:2fr 1fr 1fr}}
+footer h4{color:#fff;font-size:15px;margin-bottom:10px}
+footer p,footer a{font-size:13.5px;color:#94a3b8;text-decoration:none}
+footer a:hover{color:#fff}
+footer ul{list-style:none}
+footer li{margin-bottom:6px}
+.copy{border-top:1px solid #1e293b;margin-top:22px;padding-top:16px;font-size:12.5px;text-align:center}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-in">
+    <a class="brand" href="../index.html"><span class="mark">냉</span><span><b>냉난방공조 <span>허브</span></b><small>hvaccalc.github.io/</small></span></a>
+    <nav class="main-nav">
+      <a href="../index.html#calculators">계산기</a>
+      <a href="../index.html#reference">기준표</a>
+      <a href="../index.html#guides">실무 가이드</a>
+      <a href="../index.html#faq">자주 묻는 질문</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap article">
+  <p class="back"><a href="../index.html">&larr; 냉난방공조 허브로 돌아가기</a></p>
+  <p class="crumb">가이드 / 시스템</p>
+  <h1>VRF 시스템 이해</h1>
+  <p class="lede">VRF는 여러 대의 실내기를 한 대의 실외기로 운전하는 시스템입니다. 각 실마다 온도를 따로 조절할 수 있고, 배관이 간단해 대형 건물과 상가에서 가장 많이 쓰는 방식입니다. VRF라는 이름은 냉매 유량을 가변으로 조절한다는 뜻으로, 실내기의 부하에 따라 압축기 회전수를 바꾸어 냉매량을 조절합니다. 이 가이드에서는 VRF의 원리와 장단점, 배관 설계와 분기관 설치, 동시 운전율, 시운전 절차와 유지관리 방법을 설명합니다.</p>
+
+  <h2>VRF란 무엇인가</h2>
+  <p>VRF(Variable Refrigerant Flow)는 한 대의 실외기에 여러 대의 실내기를 연결해, 각 실내기마다 냉매 유량을 조절하는 시스템입니다. 실내기마다 전자팽창밸브가 달려 있어, 각 실의 부하에 맞게 냉매량을 조절합니다. 부하가 적은 실은 냉매를 적게 받고, 부하가 큰 실은 냉매를 많이 받습니다. 압축기는 인버터로 회전수를 조절해 전체 냉매량을 맞춥니다. 모든 실내기가 최대 부하로 운전할 때는 압축기가 풀가동하고, 일부 실내기만 운전할 때는 압축기 회전수가 낮아져 전기를 아낍니다.</p>
+  <p>VRF는 냉방 전용과 냉난방 겸용, 동시 냉난방이 가능한 3관식으로 나뉩니다. 냉난방 겸용은 모든 실내기가 냉방이나 난방 중 하나로 함께 운전하고, 3관식은 어떤 실은 냉방을, 다른 실은 난방을 동시에 할 수 있습니다. 3관식은 배관이 3개(액관, 고압 가스관, 저압 가스관)로 복잡하고 비싸지만, 한쪽 실의 냉방 폐열을 다른 실의 난방에 쓸 수 있어 에너지 효율이 좋습니다. 건물 용도와 예산에 따라 형식을 고릅니다.</p>
+  <p>VRF의 가장 큰 장점은 개별 제어입니다. 각 실마다 온도를 따로 설정할 수 있어, 햇볕이 드는 실은 세게 냉방하고 그늘진 실은 약하게 냉방할 수 있습니다. 배관도 간단합니다. 실외기에서 나온 배관을 분기관으로 나누어 각 실내기로 연결하므로, 덕트 공사보다 공사 기간이 짧습니다. 단점은 초기 비용이 비싸고, 배관 길이에 제한이 있으며, 한 대의 실외기가 고장 나면 연결된 모든 실내기가 멈춘다는 점입니다.</p>
+
+  <h2>VRF와 다른 시스템의 비교</h2>
+  <table>
+    <tr><th>구분</th><th>VRF</th><th>개별 에어컨</th><th>중앙 공조 (AHU)</th></tr>
+    <tr><td>실외기 수</td><td>1대 (여러 실내기)</td><td>실마다 1대</td><td>냉동기 1대</td></tr>
+    <tr><td>개별 온도 조절</td><td>가능</td><td>가능</td><td>제한적</td></tr>
+    <tr><td>초기 비용</td><td>높음</td><td>낮음</td><td>매우 높음</td></tr>
+    <tr><td>에너지 효율</td><td>높음 (부분 부하)</td><td>보통</td><td>높음 (대규모)</td></tr>
+    <tr><td>적합한 건물</td><td>중소형 상가·사무실</td><td>주택·소형 점포</td><td>대형 건물·병원</td></tr>
+    <tr><td>유지관리</td><td>전문 기술 필요</td><td>쉬움</td><td>전문 관리 필요</td></tr>
+  </table>
+
+  <h2>동시 운전율이란</h2>
+  <p>동시 운전율은 연결된 실내기의 총 용량 중 실제로 동시에 운전하는 비율을 말합니다. 모든 실내기가 동시에 최대 부하로 운전하는 일은 거의 없으므로, 실외기 용량은 실내기 총 용량보다 작게 잡을 수 있습니다. 예를 들어 실내기 총 용량이 100kW이고 동시 운전율이 80%라면, 실외기는 80kW급으로 충분합니다. 동시 운전율은 건물 용도에 따라 다릅니다. 사무실은 70~80%, 상가는 80~90%, 주택은 60~70%가 일반적입니다.</p>
+  <p>동시 운전율을 너무 낮게 잡으면 더운 날 모든 실내기를 켰을 때 냉방이 부족해집니다. 반대로 너무 높게 잡으면 실외기가 커져 초기 비용이 늘어납니다. 설계 단계에서 건물의 사용 패턴을 파악해 적정 동시 운전율을 정해야 합니다. 실내기 총 용량과 실외기 용량의 비율을 접속율이라고 하며, 보통 50~130% 범위에서 설계합니다. 접속율이 130%를 넘으면 실외기가 과부하되어 냉방이 안 될 수 있습니다.</p>
+  <p class="formula">실외기 용량 = 실내기 총 용량 × 동시 운전율. 실내기 총 100kW, 동시 운전율 80%이면 실외기는 80kW급을 선택합니다.</p>
+
+  <h2>배관 설계와 분기관 설치</h2>
+  <p>VRF 배관은 실외기에서 나온 주배관을 분기관으로 나누어 각 실내기로 연결하는 방식입니다. 분기관은 냉매를 고르게 나누는 부품으로, 설치 방향과 위치가 중요합니다. 분기관은 수평으로 설치해야 냉매가 고르게 나뉩니다. 기울어지면 한쪽으로 냉매가 몰려 냉방이 고르지 않게 됩니다. 분기관 앞뒤에는 직관 구간을 확보해야 합니다. 분기관 앞에는 배관 지름의 10배 이상, 뒤에는 5배 이상의 직관이 필요합니다.</p>
+  <p>배관 길이는 제조사마다 한계가 있습니다. 실외기에서 가장 먼 실내기까지의 실제 배관 길이는 보통 100~175m, 전체 배관 길이 합계는 500~1,000m가 한계입니다. 실외기와 실내기 사이의 고저차는 50m 이내, 실내기 사이의 고저차는 15m 이내가 일반적입니다. 배관이 길어지면 냉동능력이 떨어지고 오일 회수가 나빠지므로, 한계를 초과하면 실외기를 나누어 설치해야 합니다. 배관 설계는 반드시 제조사의 설계 매뉴얼을 따릅니다.</p>
+  <p>배관 시공에서는 질소 퍼지가 중요합니다. 동관을 용접할 때 배관 안에 질소 가스를 흘려 보내면, 용접 시 생기는 산화막이 배관 안에 남지 않습니다. 산화막이 배관 안에 남으면 팽창밸브를 막아 냉방이 안 됩니다. 용접 후에는 질소 가압 시험으로 기밀을 확인하고, 진공 건조를 한 뒤 냉매를 충진합니다. VRF는 배관이 길고 연결 부위가 많으므로, 진공 건조 시간을 충분히 잡아야 합니다.</p>
+
+  <h2>단계별 VRF 시운전 절차</h2>
+  <ol>
+    <li><strong>배관 기밀 시험을 한다.</strong> 질소 가스로 규정 압력을 걸어 24시간 유지하며 누설이 없는지 확인합니다.</li>
+    <li><strong>진공 건조를 한다.</strong> 진공 펌프로 배관 압력을 500미크론 이하까지 낮추고, 24시간 이상 유지해 진공이 깨지지 않는지 확인합니다.</li>
+    <li><strong>냉매를 충진한다.</strong> 배관 길이에 따라 추가 냉매량을 계산해 저울로 재며 넣습니다. 충진량은 기록해 둡니다.</li>
+    <li><strong>전원을 투입하고 주소를 설정한다.</strong> 각 실내기에 주소를 설정하고, 실외기와 통신이 되는지 확인합니다.</li>
+    <li><strong>냉방 운전을 시작한다.</strong> 모든 실내기를 냉방으로 운전해 토출 온도와 운전 압력, 전류를 측정합니다.</li>
+    <li><strong>각 실내기를 점검한다.</strong> 실내기마다 토출 온도와 풍량을 확인하고, 이상이 있는 실내기는 전자팽창밸브와 배관을 점검합니다.</li>
+    <li><strong>난방 운전을 확인한다.</strong> 냉난방 겸용 기기는 난방 운전도 확인해 제상 동작과 난방 능력을 봅니다.</li>
+    <li><strong>사용법을 안내한다.</strong> 리모컨 사용법과 필터 청소 방법, 이상 시 대처법을 사용자에게 설명합니다.</li>
+  </ol>
+
+  <h2>흔한 VRF 고장과 원인</h2>
+  <ul>
+    <li><strong>일부 실내기만 냉방이 안 됨:</strong> 해당 실내기의 전자팽창밸브 고장이나 분기관 불량이 원인일 수 있습니다. 전자팽창밸브 동작음과 배관 온도를 확인합니다.</li>
+    <li><strong>전체 냉방 능력 부족:</strong> 냉매 부족이나 동시 운전율 초과가 원인입니다. 냉매량을 확인하고, 실내기 접속율을 검토합니다.</li>
+    <li><strong>통신 에러:</strong> 실외기와 실내기 사이의 통신선 결함이나 주소 중복이 원인입니다. 통신선 연결과 주소 설정을 확인합니다.</li>
+    <li><strong>압축기 과열:</strong> 냉매 부족이나 오일 회수 불량이 원인입니다. 배관 길이와 고저차를 확인하고, 오일 회수 운전을 점검합니다.</li>
+    <li><strong>소음:</strong> 분기관에서 냉매 흐름 소리가 나면 냉매량이 부족하거나 분기관 설치가 잘못됐을 수 있습니다. 분기관 수평을 확인합니다.</li>
+  </ul>
+
+  <h2>VRF 유지관리</h2>
+  <p>VRF 유지관리는 일반 에어컨과 비슷하지만, 배관이 길고 실내기가 많아 정기 점검이 더 중요합니다. 필터는 2주에 한 번 청소하고, 열교환기는 연 1~2회 세척합니다. 드레인 팬과 호스도 정기적으로 청소합니다. 실외기는 열교환기 먼지를 제거하고, 압축기 소음을 확인합니다. 정기 점검 때 각 실내기의 토출 온도와 운전 전류를 기록해 두면, 성능이 떨어지는 실내기를 미리 찾을 수 있습니다. 기록이 쌓이면 고장 패턴을 알 수 있어 예방 정비가 쉬워집니다.</p>
+  <p>냉매 누설 점검도 중요합니다. VRF는 배관 연결 부위가 많아 누설 위험이 큽니다. 정기적으로 운전 압력과 토출 온도를 확인하고, 냉매가 부족한 징후가 보이면 누설 탐지기로 연결부를 점검합니다. 냉매를 보충만 반복하면 누설 부위가 악화되므로, 반드시 누설 부위를 찾아 수리해야 합니다. VRF 유지관리는 전문 기술이 필요하므로, 정기 점검은 제조사나 전문 업체에 맡기는 것이 안전합니다.</p>
+
+  <h2>VRF 설계 시 검토 사항</h2>
+  <p>VRF를 설계할 때는 실내기 용량과 실외기 용량, 배관 길이, 전원 용량을 함께 검토해야 합니다. 실내기 용량은 각 실의 냉방부하를 계산해 정하고, 실외기 용량은 실내기 총 용량에 동시 운전율을 곱해 정합니다. 배관 길이는 실외기에서 가장 먼 실내기까지의 거리와 전체 배관 길이 합계, 고저차가 제조사 한계 안에 드는지 확인합니다. 전원 용량은 실외기 정격전류에 맞게 차단기와 전선 굵기를 정합니다.</p>
+  <p>실내기 배치는 실내 구조와 용도를 고려해 정합니다. 천장형 실내기는 천장 공간이 충분한지, 벽걸이형은 벽면이 충분한지 확인합니다. 실내기마다 리모컨 신호가 잘 닿는지, 드레인 배수가 가능한지도 함께 봅니다. 실외기 설치 공간은 통풍과 소음, 유지보수 공간을 확보해야 합니다. 실외기를 옥상에 설치하면 배관이 길어지므로, 배관 길이 한계를 다시 확인합니다. 설계가 끝나면 제조사에 설계 검토를 요청해 배관 길이와 냉매량, 동시 운전율이 적정한지 확인받는 것이 안전합니다.</p>
+
+  <h2>VRF와 열회수 환기</h2>
+  <p>VRF와 함께 열회수 환기 장치를 설치하면 실내 공기질을 유지하면서 에너지를 아낄 수 있습니다. 열회수 환기는 나가는 실내 공기의 열을 회수해 들어오는 외기를 데우거나 식히는 장치입니다. 겨울에는 나가는 공기의 열로 들어오는 찬 공기를 데우고, 여름에는 나가는 공기의 냉기로 들어오는 더운 공기를 식힙니다. 열회수율이 70% 이상이면 환기로 인한 에너지 손실을 크게 줄일 수 있습니다.</p>
+  <p>VRF와 열회수 환기를 함께 쓰면 냉난방 부하도 줄어듭니다. 환기로 들어오는 외기가 미리 데워지거나 식혀진 상태이므로, 실내기가 처리해야 할 부하가 작아집니다. 열회수 환기는 필터가 달려 있어 외기의 미세먼지를 걸러 실내 공기질도 개선합니다. 다만 열회수 환기 장치는 정기적으로 필터와 열교환 소자를 청소해야 성능이 유지됩니다. VRF와 열회수 환기를 함께 설계할 때는 두 기기의 용량과 제어 방식을 함께 검토해야 합니다.</p>
+
+  <h2>자주 묻는 질문</h2>
+  <h3>VRF와 멀티 에어컨은 어떻게 다른가요?</h3>
+  <p>VRF는 실내기 용량과 개수가 많고, 배관 길이가 긴 상업용 시스템입니다. 멀티 에어컨은 2~5대의 실내기를 연결하는 가정용 시스템으로, 배관 길이가 짧고 용량이 작습니다. 원리는 비슷하지만, VRF는 동시 운전율 설계와 분기관, 긴 배관 관리가 필요하다는 점이 다릅니다.</p>
+  <h3>실내기 한 대만 켜도 전기가 많이 드나요?</h3>
+  <p>아닙니다. VRF 압축기는 인버터로 회전수를 조절하므로, 실내기 한 대만 운전하면 압축기도 천천히 돌아 전기를 적게 씁니다. 부분 부하 효율이 VRF의 가장 큰 장점입니다. 다만 실외기 자체의 대기 전력은 들므로, 장기간 한 대만 쓸 때는 개별 에어컨이 유리할 수 있습니다.</p>
+  <h3>VRF 실외기가 고장 나면 어떻게 되나요?</h3>
+  <p>연결된 모든 실내기가 멈춥니다. 그래서 중요한 건물에서는 실외기를 2대 이상으로 나누어 설치하거나, 예비 실외기를 두는 경우도 있습니다. 정기 점검으로 고장을 예방하는 것이 중요하고, 고장이 나면 제조사 서비스에 연락해 빠르게 수리해야 합니다.</p>
+
+  <div class="safety"><strong>안전 수칙:</strong> VRF 배관 작업 시에는 질소 가압 시험 압력을 초과하지 않게 주의하세요. R32 냉매를 쓰는 기기는 화기 근처에서 작업하지 마세요. 고소 작업과 전원 작업 시에는 안전 수칙을 지키고, 냉매 취급 시 보호구를 착용하세요. 시운전은 반드시 제조사 매뉴얼에 따라 실시하세요.</div>
+
+  <div class="related">
+    <h3>관련 계산기</h3>
+    <ul>
+      <li><a href="../index.html#calc-ref">냉매배관·냉동능력 계산기</a> — 배관 규격과 추가 냉매량 계산</li>
+      <li><a href="../index.html#calc-cool">냉방부하 계산기</a> — 실내기 용량과 동시 운전율 검토</li>
+    </ul>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <h4>냉난방공조 허브</h4>
+        <p>공조 설비 현장과 설계를 위한 무료 계산기. KS·건축설비 기준 · 설계 외기온도 -11°C / 32°C.</p>
+        <p style="margin-top:8px">hvaccalc.github.io/</p>
+      </div>
+      <div>
+        <h4>계산기</h4>
+        <ul>
+          <li><a href="../index.html#calc-cool">냉방부하</a></li>
+          <li><a href="../index.html#calc-heat">난방부하</a></li>
+          <li><a href="../index.html#calc-duct">덕트 풍량·풍속</a></li>
+          <li><a href="../index.html#calc-vent">환기량·환기횟수</a></li>
+          <li><a href="../index.html#calc-ref">냉매배관·냉동능력</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>가이드</h4>
+        <ul>
+          <li><a href="air-conditioner-installation.html">에어컨 설치 실무</a></li>
+          <li><a href="duct-design-basics.html">덕트 설계 기초</a></li>
+          <li><a href="refrigerant-charging-leak.html">냉매 충전과 누설 점검</a></li>
+          <li><a href="condensation-prevention.html">결로 대책</a></li>
+          <li><a href="filter-maintenance.html">필터와 열교환기 관리</a></li>
+          <li><a href="vrf-system-guide.html">VRF 시스템 이해</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="copy">© 2026 냉난방공조 허브 · 모든 계산은 브라우저 안에서 처리됩니다 · 결과는 추정치입니다 — 제조사 자료와 건축설비 기준으로 확인하세요.</div>
+  </div>
+</footer>
+
+</body>
+</html>

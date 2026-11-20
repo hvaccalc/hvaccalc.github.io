@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>덕트 설계 기초 — 냉난방공조 허브</title>
+<meta name="description" content="덕트 설계 기초 해설: 풍량과 풍속, 압력 손실을 계산해 덕트 치수를 정하는 법, 등압법과 등속법, 취출구와 흡입구 배치, 소음 대책을 정리했습니다.">
+<meta name="theme-color" content="#0f172a">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<style>
+:root{--navy:#0f172a;--navy2:#1e293b;--amber:#f59e0b;--amber-dark:#d97706;--amber-bg:#fef3c7;--bg:#f1f5f9;--card:#fff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;--green:#15803d;--green-bg:#dcfce7;--red:#b91c1c;--red-bg:#fee2e2;--radius:14px;--shadow:0 1px 3px rgba(15,23,42,.08),0 4px 14px rgba(15,23,42,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+a{color:var(--amber-dark)}
+header{background:var(--navy);color:#fff;position:sticky;top:0;z-index:50;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.header-in{display:flex;align-items:center;gap:14px;padding:13px 16px;max-width:1080px;margin:0 auto;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;flex:1;min-width:200px}
+.brand .mark{width:38px;height:38px;border-radius:9px;background:var(--amber);color:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;flex:none}
+.brand b{font-size:19px;letter-spacing:.2px}
+.brand b span{color:var(--amber)}
+.brand small{display:block;font-size:11.5px;color:#94a3b8;font-weight:400}
+nav.main-nav{display:flex;gap:4px;flex-wrap:wrap}
+nav.main-nav a{color:#cbd5e1;text-decoration:none;font-size:14px;font-weight:600;padding:8px 11px;border-radius:8px}
+nav.main-nav a:hover{background:var(--navy2);color:#fff}
+.article{padding:26px 0 12px}
+.back{margin-bottom:10px}
+.back a{font-weight:700;text-decoration:none}
+.back a:hover{text-decoration:underline}
+.crumb{font-size:12.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--amber-dark);margin-bottom:6px}
+.article h1{font-size:clamp(26px,4.5vw,34px);line-height:1.25;margin-bottom:10px}
+.lede{font-size:17px;color:#334155;margin-bottom:22px}
+.article h2{font-size:21px;margin:28px 0 8px;padding-top:6px;border-top:2px solid var(--amber);display:inline-block}
+.article h3{font-size:17px;margin:18px 0 6px}
+.article p{font-size:15.5px;color:#1e293b;margin-bottom:12px}
+.article ul,.article ol{margin:0 0 14px 22px;font-size:15.5px;color:#1e293b}
+.article li{margin-bottom:6px}
+.article table{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0 16px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+.article th{background:var(--navy);color:#fff;text-align:left;padding:10px 12px}
+.article td{padding:9px 12px;border-bottom:1px solid var(--border)}
+.article tr:nth-child(even) td{background:#f8fafc}
+.formula{font-size:13.5px;color:var(--muted);background:#fff;border:1px dashed var(--border);border-radius:8px;padding:10px 12px;margin:12px 0}
+.formula code{color:var(--navy);font-weight:600}
+.safety{background:var(--red-bg);border-left:4px solid var(--red);border-radius:10px;padding:14px 16px;margin:22px 0;font-size:14.5px;color:#7f1d1d}
+.related{background:var(--amber-bg);border:1px solid #fde68a;border-radius:12px;padding:16px 18px;margin:22px 0}
+.related h3{font-size:15px;margin:0 0 8px}
+.related ul{margin:0 0 0 20px}
+.related li{margin-bottom:4px}
+footer{background:var(--navy);color:#94a3b8;margin-top:44px;padding:30px 0 26px}
+footer .cols{display:grid;grid-template-columns:1fr;gap:20px}
+@media(min-width:640px){footer .cols{grid-template-columns:2fr 1fr 1fr}}
+footer h4{color:#fff;font-size:15px;margin-bottom:10px}
+footer p,footer a{font-size:13.5px;color:#94a3b8;text-decoration:none}
+footer a:hover{color:#fff}
+footer ul{list-style:none}
+footer li{margin-bottom:6px}
+.copy{border-top:1px solid #1e293b;margin-top:22px;padding-top:16px;font-size:12.5px;text-align:center}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-in">
+    <a class="brand" href="../index.html"><span class="mark">냉</span><span><b>냉난방공조 <span>허브</span></b><small>hvaccalc.github.io/</small></span></a>
+    <nav class="main-nav">
+      <a href="../index.html#calculators">계산기</a>
+      <a href="../index.html#reference">기준표</a>
+      <a href="../index.html#guides">실무 가이드</a>
+      <a href="../index.html#faq">자주 묻는 질문</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap article">
+  <p class="back"><a href="../index.html">&larr; 냉난방공조 허브로 돌아가기</a></p>
+  <p class="crumb">가이드 / 덕트</p>
+  <h1>덕트 설계 기초</h1>
+  <p class="lede">덕트는 공기를 실까지 보내는 길입니다. 덕트 설계가 잘못되면 바람이 약한 실이 생기고, 소음이 나고, 전기요금이 늘어납니다. 덕트가 작으면 풍속이 높아져 소음이 나고 압력 손실이 커지고, 덕트가 크면 천장 공간을 많이 차지하고 공사비가 늘어납니다. 이 가이드에서는 풍량과 풍속, 압력 손실을 계산해 덕트 치수를 정하는 법, 등압법과 등속법의 차이, 취출구와 흡입구 배치, 소음 대책을 설명합니다.</p>
+
+  <h2>덕트 설계의 기본 원리</h2>
+  <p>덕트 설계는 풍량에서 시작합니다. 각 실에 필요한 풍량은 냉방부하나 환기량을 계산해 정합니다. 예를 들어 냉방부하가 7kW인 실은 약 1,200 CMH의 풍량이 필요합니다. 풍량이 정해지면 목표 풍속을 정하고, 풍량을 풍속으로 나누어 덕트 단면적을 구합니다. 풍량 1,200 CMH를 풍속 5 m/s로 보내려면 단면적이 0.067m²이 필요하므로 400×200mm 덕트가 적당합니다. 이 관계가 덕트 설계의 출발점입니다.</p>
+  <p>풍속 기준은 덕트 위치에 따라 다릅니다. 주덕트는 5~8 m/s, 지덕트는 3~5 m/s, 취출구는 2~3 m/s가 일반적입니다. 사무실처럼 조용한 곳은 낮은 쪽을, 공장처럼 소음이 덜 문제되는 곳은 높은 쪽을 씁니다. 풍속이 높으면 덕트를 작게 만들 수 있어 공사비가 줄지만, 소음과 압력 손실이 커져 송풍기 동력이 늘어납니다. 반대로 풍속을 낮추면 소음이 줄고 압력 손실이 작아지지만, 덕트가 커져 천장 공간과 공사비가 늘어납니다. 설계자는 이 균형을 맞춰야 합니다.</p>
+  <p class="formula">풍속 v = 풍량 Q ÷ 덕트 단면적 A. 풍량 1,200 CMH = 0.333 m³/s, 단면적 0.08 m²(400×200mm)이면 풍속은 4.2 m/s입니다.</p>
+
+  <h2>등압법과 등속법</h2>
+  <p>덕트 치수를 정하는 대표적인 방법은 등압법과 등속법입니다. 등압법은 덕트 길이에 따른 압력 손실을 일정하게 유지하는 방법입니다. 주덕트에서 멀리 갈수록 풍량이 줄어드므로, 압력 손실률을 일정하게 유지하면 덕트 치수가 자연스럽게 작아집니다. 등압법은 계산이 간단하고 실무에서 가장 많이 쓰입니다. 단위 길이당 압력 손실을 0.8~1.0 Pa/m 정도로 잡는 것이 일반적입니다.</p>
+  <p>등속법은 덕트 전체의 풍속을 일정하게 유지하는 방법입니다. 풍량이 줄어드는 만큼 덕트 치수를 줄여 풍속을 일정하게 맞춥니다. 등속법은 소음을 일정하게 유지할 수 있다는 장점이 있지만, 압력 손실 계산이 복잡해 실무에서는 등압법을 더 많이 씁니다. 최근에는 컴퓨터 프로그램으로 압력 손실을 계산해 최적의 덕트 치수를 찾는 경우가 많습니다. 두 방법 모두 목적은 같으며, 각 실에 필요한 풍량이 고르게 분배되는 것입니다.</p>
+  <table>
+    <tr><th>설계 방법</th><th>원리</th><th>장점</th><th>단점</th><th>적합한 경우</th></tr>
+    <tr><td>등압법</td><td>단위 길이당 압력 손실 일정</td><td>계산 간단, 실무적</td><td>말단 풍속 낮아짐</td><td>일반 사무실·상가</td></tr>
+    <tr><td>등속법</td><td>덕트 전체 풍속 일정</td><td>소음 일정 유지</td><td>계산 복잡</td><td>소음이 중요한 곳</td></tr>
+    <tr><td>정압 회복법</td><td>분기에서 정압 회복 이용</td><td>풍량 균형 좋음</td><td>계산 복잡, 설계 시간 김</td><td>대규모 건물</td></tr>
+  </table>
+
+  <h2>압력 손실의 종류</h2>
+  <p>덕트에서 공기가 흐를 때 생기는 압력 손실은 마찰 손실과 국부 손실로 나뉩니다. 마찰 손실은 공기가 덕트 벽과 마찰하면서 생기는 손실로, 덕트가 길수록, 풍속이 높을수록, 덕트 표면이 거칠수록 커집니다. 국부 손실은 엘보, 티, 레듀서, 댐퍼, 취출구처럼 흐름이 바뀌는 부분에서 생기는 손실입니다. 엘보가 많거나 급격하게 꺾이는 곳이 많으면 국부 손실이 커집니다.</p>
+  <p>압력 손실이 커지면 송풍기가 더 큰 압력을 내야 하므로 송풍기 동력과 소음이 늘어납니다. 압력 손실을 줄이려면 덕트 경로를 짧게 하고, 굴곡을 완만하게 하며, 엘보 개수를 줄입니다. 90도 엘보 대신 45도 엘보 두 개를 쓰면 손실이 줄어듭니다. 덕트 내부에 돌출물이 없게 하고, 이음매를 매끈하게 처리하는 것도 중요합니다. 설계 단계에서 압력 손실을 계산해 송풍기 정압이 충분한지 확인해야 합니다.</p>
+
+  <h2>단계별 덕트 설계 절차</h2>
+  <ol>
+    <li><strong>실별 풍량을 정한다.</strong> 각 실의 냉방부하나 환기량을 계산해 필요한 풍량을 정합니다. 풍량은 냉방부하 계산기로 구할 수 있습니다.</li>
+    <li><strong>덕트 경로를 정한다.</strong> 공조기에서 각 실까지의 경로를 정합니다. 경로는 짧게, 굴곡은 적게, 천장 공간 안에서 시공 가능하게 잡습니다.</li>
+    <li><strong>목표 풍속을 정한다.</strong> 주덕트는 5~8 m/s, 지덕트는 3~5 m/s로 정합니다. 조용한 곳은 낮은 쪽을 씁니다.</li>
+    <li><strong>덕트 치수를 계산한다.</strong> 풍량을 풍속으로 나누어 단면적을 구하고, 직사각형 덕트 치수로 바꿉니다. 가로와 세로의 비율은 4:1을 넘지 않게 합니다.</li>
+    <li><strong>압력 손실을 계산한다.</strong> 마찰 손실과 국부 손실을 합산해 전체 압력 손실을 구하고, 송풍기 정압과 비교합니다.</li>
+    <li><strong>취출구와 흡입구를 배치한다.</strong> 취출구는 실내 공기가 고르게 퍼지게 배치하고, 흡입구는 취출구와 대각선 방향에 둡니다.</li>
+    <li><strong>댐퍼를 설치한다.</strong> 각 지덕트에 풍량 조절 댐퍼를 달아 시운전 때 풍량을 조정할 수 있게 합니다.</li>
+    <li><strong>시운전 때 풍량을 측정한다.</strong> 풍속계로 각 취출구의 풍량을 측정해 설계값과 비교하고, 댐퍼로 조정합니다.</li>
+  </ol>
+
+  <h2>취출구와 흡입구 배치</h2>
+  <p>취출구는 찬 공기를 실내로 내보내는 구멍이고, 흡입구는 실내 공기를 빨아들이는 구멍입니다. 취출구 배치가 잘못되면 실내에 찬 공기가 닿지 않는 사각지대가 생깁니다. 취출구는 천장 중앙이나 벽 상부에 고르게 배치하고, 취출구 사이의 간격은 취출구에서 나오는 바람의 도달 거리를 고려해 정합니다. 천장형 디퓨저는 4방향으로 바람이 퍼지므로, 실 크기에 맞게 개수를 정합니다.</p>
+  <p>흡입구는 취출구와 반대쪽에 두는 것이 좋습니다. 취출구와 흡입구가 가까우면 찬 공기가 실내를 돌지 않고 바로 흡입구로 들어가 버리는 쇼트 서킷이 생깁니다. 흡입구는 바닥 가까이에 두면 찬 공기가 아래에 고이는 것을 막을 수 있지만, 먼지가 많이 들어가므로 필터 관리를 잘해야 합니다. 취출구와 흡입구의 위치는 가구 배치와도 함께 고려해야 합니다. 취출구 앞에 높은 가구가 있으면 바람이 막혀 실내가 고르게 냉방되지 않습니다.</p>
+
+  <h2>덕트 소음 대책</h2>
+  <p>덕트 소음의 원인은 크게 세 가지입니다. 첫째, 풍속이 높아 덕트 벽이 진동하는 소리입니다. 풍속을 기준 이하로 낮추면 해결됩니다. 둘째, 취출구에서 바람이 나오는 소리입니다. 취출구 풍속이 2~3 m/s를 넘으면 소리가 커지므로, 취출구 개수를 늘려 풍속을 낮춥니다. 셋째, 송풍기 소음이 덕트를 타고 전달되는 소리입니다. 송풍기 출구에 소음기를 달고, 덕트에 흡음재를 붙이면 줄일 수 있습니다.</p>
+  <p>소음 대책은 설계 단계에서 하는 것이 가장 효과적입니다. 덕트 풍속을 낮게 잡고, 엘보와 분기 부위를 완만하게 하며, 송풍기 출구에 소음기를 설치합니다. 시공 후 소음이 나면 댐퍼를 조여 풍량을 줄이거나, 취출구에 소음기를 추가하는 방법으로 대응합니다. 소음 기준이 엄격한 회의실이나 병원에서는 설계 단계부터 소음 계산을 하는 것이 좋습니다.</p>
+
+  <h2>흔한 덕트 설계 실수</h2>
+  <ul>
+    <li><strong>풍속 과다:</strong> 덕트를 작게 잡아 풍속이 8 m/s를 넘으면 소음과 압력 손실이 커집니다. 기준 풍속을 지킵니다.</li>
+    <li><strong>급격한 굴곡:</strong> 90도 엘보를 여러 번 쓰면 압력 손실이 커집니다. 완만한 굴곡과 45도 엘보를 사용합니다.</li>
+    <li><strong>댐퍼 누락:</strong> 지덕트에 댐퍼가 없으면 풍량 조정이 안 되어 가까운 실에만 바람이 많이 갑니다. 각 지덕트에 댐퍼를 답니다.</li>
+    <li><strong>취출구·흡입구 근접:</strong> 두 구멍이 가까우면 쇼트 서킷이 생겨 실내가 고르게 냉방되지 않습니다. 대각선 방향에 배치합니다.</li>
+    <li><strong>단열 누락:</strong> 냉방 덕트 단열을 빼먹으면 표면에 결로가 생기고, 냉방 손실이 커집니다. 덕트 외부에 단열재를 감쌉니다.</li>
+  </ul>
+
+  <h2>덕트 재질과 단열</h2>
+  <p>덕트 재질은 용도와 예산에 따라 고릅니다. 아연도금 강판 덕트는 가장 많이 쓰는 재질로, 강도가 높고 화재에 강합니다. 스테인리스 덕트는 부식에 강해 주방이나 습기가 많은 곳에 쓰고, 알루미늄 덕트는 가벼워 천장 하중을 줄일 수 있습니다. 유리섬유 덕트보드로 만든 덕트는 단열과 흡음 효과가 있어 소음이 적은 것이 장점이지만, 강도가 약하고 먼지가 생길 수 있어 관리가 필요합니다.</p>
+  <p>냉방 덕트에는 반드시 단열을 해야 합니다. 단열이 없으면 덕트 표면에 결로가 생기고, 냉방 손실이 커집니다. 단열재는 유리섬유나 고무 발포재를 쓰며, 두께는 25mm 이상이 일반적입니다. 단열재 이음매는 테이프로 완전히 밀봉해 습기가 들어가지 않게 합니다. 단열재가 젖으면 단열 성능이 떨어지므로, 젖은 단열재는 교체해야 합니다. 덕트 외부에 단열재를 감쌀 때는 덕트 지지대 부분도 함께 감싸 열교가 생기지 않게 합니다.</p>
+
+  <h2>덕트 시공과 검사</h2>
+  <p>덕트 시공에서는 이음매의 기밀성이 중요합니다. 덕트 이음매에서 공기가 새면 풍량이 줄어들고, 에너지가 낭비됩니다. 이음매는 실란트로 밀봉하고, 플랜지 연결부는 가스켓을 끼워 기밀하게 조입니다. 덕트 누설 시험은 설계 풍량의 5% 이하로 누설을 제한하는 것이 일반적입니다. 누설이 많으면 송풍기가 더 큰 풍량을 내야 하므로 전기요금이 늘어납니다.</p>
+  <p>덕트 시공이 끝나면 풍량 측정으로 검사합니다. 풍속계로 각 취출구의 풍량을 측정해 설계값과 비교하고, 댐퍼로 조정합니다. 가까운 취출구에 바람이 몰리고 먼 취출구에 바람이 약하면, 가까운 쪽 댐퍼를 조여 풍량을 맞춥니다. 풍량 조정이 끝나면 댐퍼 위치를 표시해 두어야 나중에 청소 후에도 같은 상태로 복원할 수 있습니다. 덕트 내부 청소는 정기적으로 실시하고, 청소 후에는 풍량을 다시 측정합니다.</p>
+
+  <h2>덕트 청소와 위생 관리</h2>
+  <p>덕트 안에는 시간이 지나면 먼지와 곰팡이가 쌓입니다. 더러운 덕트에서는 냄새가 나고, 실내 공기질이 나빠지며, 심하면 호흡기 질환의 원인이 됩니다. 덕트는 정기적으로 청소해야 합니다. 덕트 청소 전문 업체는 로봇과 고압 공기로 덕트 안의 먼지를 제거합니다. 청소 주기는 건물 용도에 따라 다르지만, 일반 사무실은 2~3년에 한 번, 병원이나 식품 공장은 더 자주 청소합니다. 덕트 청소 후에는 소독을 함께 하면 곰팡이 재발을 막을 수 있습니다.</p>
+
+  <h2>자주 묻는 질문</h2>
+  <h3>덕트 치수는 어떻게 정하나요?</h3>
+  <p>풍량을 목표 풍속으로 나누어 단면적을 구한 뒤, 직사각형 치수로 바꿉니다. 풍량 1,200 CMH를 풍속 5 m/s로 보내려면 단면적이 0.067m²이 필요하므로 400×200mm 덕트가 적당합니다. 본 사이트의 덕트 풍량·풍속 계산기에 풍량과 덕트 치수를 입력하면 풍속이 바로 계산됩니다.</p>
+  <h3>등압법과 등속법 중 어느 것을 써야 하나요?</h3>
+  <p>일반적인 사무실이나 상가에서는 등압법을 씁니다. 계산이 간단하고 실무에 충분하기 때문입니다. 소음이 중요한 회의실이나 병원에서는 등속법을 검토할 수 있지만, 요즘은 프로그램으로 압력 손실을 계산하는 경우가 많아 방법의 구분이 예전만큼 중요하지 않습니다.</p>
+  <h3>덕트에서 소음이 나요. 어떻게 줄이나요?</h3>
+  <p>먼저 풍속을 확인합니다. 풍속이 기준을 넘으면 덕트를 키우거나 댐퍼로 풍량을 줄입니다. 취출구 소음이면 취출구 개수를 늘려 풍속을 낮춥니다. 송풍기 소음이 덕트를 타고 오면 송풍기 출구에 소음기를 답니다. 덕트 진동 소음이면 덕트 지지대를 보강하고 진동 방지재를 사용합니다.</p>
+
+  <div class="safety"><strong>안전 수칙:</strong> 덕트 시공 시 고소 작업 안전 수칙을 지키세요. 천장 위 작업에서는 발판을 확보하고, 날카로운 덕트 모서리에 다치지 않게 장갑을 착용하세요. 덕트 내부 청소 시에는 먼지 마스크를 쓰고, 곰팡이가 있는 덕트는 방진 마스크를 착용하세요.</div>
+
+  <div class="related">
+    <h3>관련 계산기</h3>
+    <ul>
+      <li><a href="../index.html#calc-duct">덕트 풍량·풍속 계산기</a> — 풍속과 덕트 치수 계산</li>
+      <li><a href="../index.html#calc-vent">환기량·환기횟수 계산기</a> — 필요 환기량 계산</li>
+      <li><a href="../index.html#calc-cool">냉방부하 계산기</a> — 실별 필요 풍량 계산</li>
+    </ul>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <h4>냉난방공조 허브</h4>
+        <p>공조 설비 현장과 설계를 위한 무료 계산기. KS·건축설비 기준 · 설계 외기온도 -11°C / 32°C.</p>
+        <p style="margin-top:8px">hvaccalc.github.io/</p>
+      </div>
+      <div>
+        <h4>계산기</h4>
+        <ul>
+          <li><a href="../index.html#calc-cool">냉방부하</a></li>
+          <li><a href="../index.html#calc-heat">난방부하</a></li>
+          <li><a href="../index.html#calc-duct">덕트 풍량·풍속</a></li>
+          <li><a href="../index.html#calc-vent">환기량·환기횟수</a></li>
+          <li><a href="../index.html#calc-ref">냉매배관·냉동능력</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>가이드</h4>
+        <ul>
+          <li><a href="air-conditioner-installation.html">에어컨 설치 실무</a></li>
+          <li><a href="duct-design-basics.html">덕트 설계 기초</a></li>
+          <li><a href="refrigerant-charging-leak.html">냉매 충전과 누설 점검</a></li>
+          <li><a href="condensation-prevention.html">결로 대책</a></li>
+          <li><a href="filter-maintenance.html">필터와 열교환기 관리</a></li>
+          <li><a href="vrf-system-guide.html">VRF 시스템 이해</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="copy">© 2026 냉난방공조 허브 · 모든 계산은 브라우저 안에서 처리됩니다 · 결과는 추정치입니다 — 제조사 자료와 건축설비 기준으로 확인하세요.</div>
+  </div>
+</footer>
+
+</body>
+</html>
