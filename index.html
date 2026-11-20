@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>냉난방공조 허브 — 냉방부하·난방부하·덕트·환기 계산기</title>
+<meta name="description" content="냉난방공조 허브: 냉방부하, 난방부하, 덕트 풍량과 풍속, 환기량과 환기횟수, 냉매배관과 냉동능력 계산기. KS 기준, 380V 3상 / 220V 단상, 60Hz.">
+<meta name="theme-color" content="#0f172a">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+:root{--navy:#0f172a;--navy2:#1e293b;--amber:#f59e0b;--amber-dark:#d97706;--amber-bg:#fef3c7;--bg:#f1f5f9;--card:#fff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;--green:#15803d;--green-bg:#dcfce7;--red:#b91c1c;--red-bg:#fee2e2;--radius:14px;--shadow:0 1px 3px rgba(15,23,42,.08),0 4px 14px rgba(15,23,42,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+a{color:var(--amber-dark)}
+header{background:var(--navy);color:#fff;position:sticky;top:0;z-index:50;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.header-in{display:flex;align-items:center;gap:14px;padding:13px 16px;max-width:1080px;margin:0 auto;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;flex:1;min-width:200px}
+.brand .mark{width:38px;height:38px;border-radius:9px;background:var(--amber);color:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;flex:none}
+.brand b{font-size:19px;letter-spacing:.2px}
+.brand b span{color:var(--amber)}
+.brand small{display:block;font-size:11.5px;color:#94a3b8;font-weight:400}
+nav.main-nav{display:flex;gap:4px;flex-wrap:wrap}
+nav.main-nav a{color:#cbd5e1;text-decoration:none;font-size:14px;font-weight:600;padding:8px 11px;border-radius:8px}
+nav.main-nav a:hover{background:var(--navy2);color:#fff}
+.hero{background:linear-gradient(135deg,var(--navy) 0%,#1e293b 60%,#334155 100%);color:#fff;padding:44px 0 40px}
+.hero h1{font-size:clamp(26px,5vw,40px);line-height:1.2;max-width:760px}
+.hero h1 span{color:var(--amber)}
+.hero p{color:#cbd5e1;font-size:16px;max-width:720px;margin-top:12px}
+.hero .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.hero .badge{background:rgba(245,158,11,.16);border:1px solid rgba(245,158,11,.45);color:#fde68a;font-size:13px;font-weight:600;border-radius:999px;padding:6px 13px}
+section{padding:34px 0 8px}
+section h2{font-size:24px;margin-bottom:6px}
+section h2 .bar{color:var(--amber)}
+.section-sub{color:var(--muted);font-size:15px;max-width:760px;margin-bottom:20px}
+.calc-grid{display:grid;grid-template-columns:1fr;gap:18px}
+@media(min-width:860px){.calc-grid{grid-template-columns:1fr 1fr}.calc-grid .wide{grid-column:1 / -1}}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 20px;border-top:4px solid var(--amber)}
+.card h3{font-size:18px;margin-bottom:2px}
+.card .tag{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber-dark)}
+.card .desc{font-size:14px;color:var(--muted);margin:6px 0 16px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:13.5px;font-weight:600;margin-bottom:6px}
+.field label small{font-weight:400;color:var(--muted)}
+.field input,.field select{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;outline:none;background:#fff;color:var(--text)}
+.field input:focus,.field select:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(245,158,11,.18)}
+.field-row{display:grid;grid-template-columns:1fr;gap:0 12px}
+@media(min-width:560px){.field-row{grid-template-columns:1fr 1fr}}
+.btn{display:inline-flex;align-items:center;justify-content:center;background:var(--amber);color:var(--navy);border:0;border-radius:10px;padding:12px 22px;font-size:15px;font-weight:800;min-height:46px;cursor:pointer;font-family:inherit}
+.btn:hover{background:var(--amber-dark);color:#fff}
+.btn-row{margin-top:4px}
+.results{display:none;margin-top:16px}
+.results.show{display:block}
+.results h4{font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(min-width:560px){.stat-grid{grid-template-columns:repeat(3,1fr)}}
+.stat{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.stat.hero{background:var(--amber-bg);border-color:#fde68a}
+.stat .k{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-size:19px;font-weight:800;margin-top:3px;word-break:break-word}
+.stat.hero .v{color:#92400e}
+.stat.wide{grid-column:1 / -1}
+.verdict{margin-top:10px;border-radius:10px;padding:11px 14px;font-size:14px;font-weight:600}
+.verdict.ok{background:var(--green-bg);color:var(--green)}
+.verdict.warn{background:var(--amber-bg);color:#92400e}
+.verdict.bad{background:var(--red-bg);color:var(--red)}
+.note{font-size:12.5px;color:var(--muted);margin-top:12px}
+.formula{font-size:13px;color:var(--muted);background:#f8fafc;border:1px dashed var(--border);border-radius:8px;padding:8px 11px;margin-top:12px}
+.formula code{color:var(--navy);font-weight:600}
+.table-wrap{overflow-x:auto;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th{background:var(--navy);color:#fff;text-align:left;padding:11px 12px;font-size:13px}
+td{padding:10px 12px;border-bottom:1px solid var(--border)}
+tr:nth-child(even) td{background:#f8fafc}
+.guide-grid{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:640px){.guide-grid{grid-template-columns:1fr 1fr}}
+@media(min-width:960px){.guide-grid{grid-template-columns:1fr 1fr 1fr}}
+.guide{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 18px;border-left:4px solid var(--amber)}
+.guide .g-tag{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--amber-dark)}
+.guide h3{font-size:16.5px;margin:5px 0 7px}
+.guide p{font-size:14px;color:#334155}
+.guide-link{margin-top:10px;font-size:14px;font-weight:700}
+.guide-link a{text-decoration:none}
+.guide-link a:hover{text-decoration:underline}
+.faq{max-width:820px}
+.faq-item{background:#fff;border-radius:12px;box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden}
+.faq-item button{width:100%;text-align:left;background:none;border:0;padding:16px 18px;font-size:15.5px;font-weight:700;font-family:inherit;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.faq-item button .chev{color:var(--amber-dark);font-size:20px;flex:none}
+.faq-item .answer{display:none;padding:0 18px 16px;font-size:14.5px;color:#334155}
+.faq-item.open .answer{display:block}
+.faq-item.open .chev{transform:rotate(45deg)}
+.about{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 20px}
+.about p{font-size:14.5px;color:#334155;margin-bottom:10px}
+footer{background:var(--navy);color:#94a3b8;margin-top:44px;padding:30px 0 26px}
+footer .cols{display:grid;grid-template-columns:1fr;gap:20px}
+@media(min-width:640px){footer .cols{grid-template-columns:2fr 1fr 1fr}}
+footer h4{color:#fff;font-size:15px;margin-bottom:10px}
+footer p,footer a{font-size:13.5px;color:#94a3b8;text-decoration:none}
+footer a:hover{color:#fff}
+footer ul{list-style:none}
+footer li{margin-bottom:6px}
+.copy{border-top:1px solid #1e293b;margin-top:22px;padding-top:16px;font-size:12.5px;text-align:center}
+.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.65);display:none;align-items:center;justify-content:center;z-index:100;padding:18px}
+.modal-backdrop.show{display:flex}
+.modal{background:#fff;border-radius:16px;max-width:560px;width:100%;max-height:82vh;overflow:auto;padding:24px 22px;position:relative}
+.modal h3{font-size:19px;margin-bottom:10px}
+.modal p{font-size:14.5px;color:#334155;margin-bottom:10px}
+.modal .close-x{position:absolute;top:12px;right:14px;background:#f1f5f9;border:0;border-radius:8px;width:34px;height:34px;font-size:18px;cursor:pointer;color:var(--text)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 18px;border-radius:999px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:.25s;z-index:200;max-width:92vw;text-align:center}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-in">
+    <a class="brand" href="#top"><span class="mark">냉</span><span><b>냉난방공조 <span>허브</span></b><small>hvaccalc.github.io/</small></span></a>
+    <nav class="main-nav">
+      <a href="#calculators">계산기</a>
+      <a href="#reference">기준표</a>
+      <a href="#guides">실무 가이드</a>
+      <a href="#faq">자주 묻는 질문</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero" id="top">
+  <div class="wrap">
+    <h1>냉난방공조 <span>계산기</span> — 냉방부하·난방부하·덕트·환기·냉매</h1>
+    <p>냉난방공조 설비 현장과 설계 실무에 바로 쓰는 무료 계산기입니다. 냉방부하와 난방부하, 덕트 풍량과 풍속, 환기량과 환기횟수, 냉매배관과 냉동능력을 브라우저에서 즉시 계산합니다. KS 기준과 건축설비 설계 기준, 서울 설계 외기온도 기준(-11°C 겨울, 32°C 여름)을 따릅니다.</p>
+    <div class="badges">
+      <span class="badge">계산기 5종</span>
+      <span class="badge">KS·건축설비 기준</span>
+      <span class="badge">설계 외기온도 -11°C / 32°C</span>
+      <span class="badge">가입 불필요 · 오프라인 동작</span>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+
+<section id="calculators">
+  <h2><span class="bar">|</span> 공조 계산기</h2>
+  <p class="section-sub">실측값이나 설계값을 입력하고 계산 버튼을 누르면 결과가 즉시 표시됩니다. 모든 계산은 브라우저 안에서 처리되며 입력값이 서버로 전송되지 않습니다.</p>
+
+  <div class="calc-grid">
+
+  <!-- ============ 1. 냉방부하 ============ -->
+  <div class="card" id="calc-cool">
+    <div class="tag">냉방부하</div>
+    <h3>냉방부하 계산기</h3>
+    <p class="desc">바닥면적과 용도, 재실 인원, 기기 발열, 창 면적을 입력하면 필요한 냉방능력을 kW와 냉동톤(RT)으로 계산합니다.</p>
+    <div class="field-row">
+      <div class="field"><label>바닥면적 (m²)</label><input type="number" id="cArea" value="30" min="1" step="0.5"></div>
+      <div class="field"><label>용도 (단위면적당 부하)</label>
+        <select id="cUse">
+          <option value="130">주택 (130 W/m²)</option>
+          <option value="180" selected>사무실 (180 W/m²)</option>
+          <option value="200">상가 (200 W/m²)</option>
+          <option value="220">식당 (220 W/m²)</option>
+          <option value="160">교실 (160 W/m²)</option>
+          <option value="350">전산실 (350 W/m²)</option>
+        </select>
+      </div>
+      <div class="field"><label>재실 인원 (명)</label><input type="number" id="cPeople" value="6" min="0"></div>
+      <div class="field"><label>기기 발열 (kW)</label><input type="number" id="cEquip" value="0.5" min="0" step="0.1"></div>
+      <div class="field"><label>창 면적 (m²)</label><input type="number" id="cWindow" value="4" min="0" step="0.5"></div>
+      <div class="field"><label>안전율 (%)</label><input type="number" id="cSafety" value="10" min="0" max="30"></div>
+    </div>
+    <div class="btn-row"><button class="btn" id="cCalc" type="button">냉방부하 계산</button></div>
+    <div class="results" id="cResults">
+      <h4>냉방부하 결과</h4>
+      <div class="stat-grid">
+        <div class="stat hero"><div class="k">필요 냉방능력</div><div class="v" id="cKw">—</div></div>
+        <div class="stat"><div class="k">냉동톤 (RT)</div><div class="v" id="cRt">—</div></div>
+        <div class="stat"><div class="k">권장 에어컨 용량</div><div class="v" id="cHp">—</div></div>
+        <div class="stat"><div class="k">면적 부하</div><div class="v" id="cAreaLoad">—</div></div>
+        <div class="stat"><div class="k">인체 부하</div><div class="v" id="cPeopleLoad">—</div></div>
+        <div class="stat"><div class="k">일사 부하</div><div class="v" id="cSolarLoad">—</div></div>
+      </div>
+      <p class="formula">계산식: 냉방부하 = 면적 × 단위면적 부하 + 인원 × 120W + 기기 발열 + 창 면적 × 250W, 여기에 안전율을 적용합니다. 1RT(냉동톤) = 3.517kW, 에어컨 1HP ≈ 2.5kW 냉방능력입니다.</p>
+      <p class="note">단위면적당 부하는 대략적인 설계 참고값입니다. 정확한 부하 계산은 벽체·지붕의 열관류율, 창호 성능, 향과 차양, 외기 조건을 모두 고려한 상세 계산이 필요합니다.</p>
+    </div>
+  </div>
+
+  <!-- ============ 2. 난방부하 ============ -->
+  <div class="card" id="calc-heat">
+    <div class="tag">난방부하</div>
+    <h3>난방부하 계산기</h3>
+    <p class="desc">바닥면적과 천장 높이, 외피 단열 성능, 실내·외기 온도, 환기횟수를 입력하면 난방부하와 필요한 보일러 용량을 계산합니다.</p>
+    <div class="field-row">
+      <div class="field"><label>바닥면적 (m²)</label><input type="number" id="hArea" value="30" min="1" step="0.5"></div>
+      <div class="field"><label>천장 높이 (m)</label><input type="number" id="hHeight" value="2.6" min="2" step="0.1"></div>
+      <div class="field"><label>평균 열관류율 U (W/m²K)</label>
+        <select id="hU">
+          <option value="0.4">단열 양호 (U 0.4)</option>
+          <option value="0.7" selected>단열 보통 (U 0.7)</option>
+          <option value="1.2">단열 미흡 (U 1.2)</option>
+        </select>
+      </div>
+      <div class="field"><label>실내 온도 (°C)</label><input type="number" id="hIn" value="20" step="0.5"></div>
+      <div class="field"><label>외기 온도 (°C)</label><input type="number" id="hOut" value="-11" step="0.5"></div>
+      <div class="field"><label>환기횟수 (회/h)</label><input type="number" id="hAch" value="0.5" min="0" step="0.1"></div>
+    </div>
+    <div class="btn-row"><button class="btn" id="hCalc" type="button">난방부하 계산</button></div>
+    <div class="results" id="hResults">
+      <h4>난방부하 결과</h4>
+      <div class="stat-grid">
+        <div class="stat hero"><div class="k">필요 난방능력</div><div class="v" id="hKw">—</div></div>
+        <div class="stat"><div class="k">외피 손실</div><div class="v" id="hEnv">—</div></div>
+        <div class="stat"><div class="k">환기 손실</div><div class="v" id="hVent">—</div></div>
+        <div class="stat"><div class="k">권장 보일러 용량</div><div class="v" id="hBoiler">—</div></div>
+        <div class="stat"><div class="k">단위면적당 부하</div><div class="v" id="hPerM2">—</div></div>
+        <div class="stat"><div class="k">실 체적</div><div class="v" id="hVol">—</div></div>
+      </div>
+      <p class="formula">계산식: 외피 손실 = U × 외피 면적 × ΔT (외피 면적은 정사각 평면 가정: 벽 4×√면적×높이 + 천장 + 바닥). 환기 손실 = 0.33 × 환기횟수 × 체적 × ΔT. 서울 겨울 설계 외기온도는 -11°C입니다.</p>
+    </div>
+  </div>
+
+  <!-- ============ 3. 덕트 풍량·풍속 ============ -->
+  <div class="card" id="calc-duct">
+    <div class="tag">덕트 설계</div>
+    <h3>덕트 풍량·풍속 계산기</h3>
+    <p class="desc">풍량과 덕트 치수를 입력하면 풍속을 계산하고, 주덕트·지덕트·취출구 기준에 맞는지 판정합니다.</p>
+    <div class="field-row">
+      <div class="field"><label>풍량 (CMH)</label><input type="number" id="dCmh" value="1200" min="1"></div>
+      <div class="field"><label>덕트 형태</label>
+        <select id="dShape">
+          <option value="rect">직사각형 덕트</option>
+          <option value="round">원형 덕트</option>
+        </select>
+      </div>
+      <div class="field"><label>덕트 가로 (mm)</label><input type="number" id="dW" value="400" min="50"></div>
+      <div class="field"><label>덕트 세로 / 직경 (mm)</label><input type="number" id="dH" value="200" min="50"></div>
+    </div>
+    <div class="btn-row"><button class="btn" id="dCalc" type="button">풍속 계산</button></div>
+    <div class="results" id="dResults">
+      <h4>덕트 계산 결과</h4>
+      <div class="stat-grid">
+        <div class="stat hero"><div class="k">풍속</div><div class="v" id="dVel">—</div></div>
+        <div class="stat"><div class="k">덕트 단면적</div><div class="v" id="dArea">—</div></div>
+        <div class="stat"><div class="k">풍량 (m³/s)</div><div class="v" id="dCms">—</div></div>
+        <div class="stat"><div class="k">목표 풍속 5m/s 필요 면적</div><div class="v" id="dNeedArea">—</div></div>
+        <div class="stat"><div class="k">권장 직사각형 치수</div><div class="v" id="dRec">—</div></div>
+        <div class="stat"><div class="k">상당 직경</div><div class="v" id="dEqDia">—</div></div>
+      </div>
+      <div class="verdict ok" id="dVerdict">—</div>
+      <p class="formula">계산식: 풍속 v = 풍량 ÷ 단면적 (Q = A × v). 기준 풍속: 주덕트 5~8 m/s, 지덕트 3~5 m/s, 취출구 2~3 m/s. 풍속이 높으면 소음과 압력 손실이 커지고, 낮으면 덕트가 커져 공사비가 늘어납니다.</p>
+    </div>
+  </div>
+
+  <!-- ============ 4. 환기량·환기횟수 ============ -->
+  <div class="card" id="calc-vent">
+    <div class="tag">환기</div>
+    <h3>환기량·환기횟수 계산기</h3>
+    <p class="desc">실 면적과 높이, 재실 인원, 용도를 입력하면 필요한 환기량을 체적 기준과 인원 기준 중 큰 값으로 계산합니다.</p>
+    <div class="field-row">
+      <div class="field"><label>바닥면적 (m²)</label><input type="number" id="vArea" value="50" min="1" step="0.5"></div>
+      <div class="field"><label>천장 높이 (m)</label><input type="number" id="vHeight" value="2.6" min="2" step="0.1"></div>
+      <div class="field"><label>재실 인원 (명)</label><input type="number" id="vPeople" value="20" min="0"></div>
+      <div class="field"><label>용도 (기준 환기횟수)</label>
+        <select id="vUse">
+          <option value="2" selected>사무실 (2회/h)</option>
+          <option value="3">교실 (3회/h)</option>
+          <option value="4">식당 (4회/h)</option>
+          <option value="6">지하주차장 (6회/h)</option>
+          <option value="1.5">주택 거실 (1.5회/h)</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn" id="vCalc" type="button">환기량 계산</button></div>
+    <div class="results" id="vResults">
+      <h4>환기량 결과</h4>
+      <div class="stat-grid">
+        <div class="stat hero"><div class="k">필요 환기량</div><div class="v" id="vCmh">—</div></div>
+        <div class="stat"><div class="k">실 체적</div><div class="v" id="vVol">—</div></div>
+        <div class="stat"><div class="k">체적 기준 환기량</div><div class="v" id="vByVol">—</div></div>
+        <div class="stat"><div class="k">인원 기준 환기량</div><div class="v" id="vByPeople">—</div></div>
+        <div class="stat"><div class="k">실제 환기횟수</div><div class="v" id="vAch">—</div></div>
+        <div class="stat"><div class="k">1인당 환기량</div><div class="v" id="vPerPerson">—</div></div>
+      </div>
+      <p class="formula">계산식: 체적 기준 = 체적 × 기준 환기횟수, 인원 기준 = 인원 × 30 m³/h·인. 필요 환기량은 두 값 중 큰 값입니다. 1인당 30 m³/h는 실내공기질 관리법의 사무실 기준입니다.</p>
+    </div>
+  </div>
+
+  <!-- ============ 5. 냉매배관·냉동능력 ============ -->
+  <div class="card wide" id="calc-ref">
+    <div class="tag">냉매배관</div>
+    <h3>냉매배관·냉동능력 계산기</h3>
+    <p class="desc">냉동능력과 배관 길이, 냉매 종류를 입력하면 액관과 가스관 규격, 추가 냉매 충진량을 계산합니다. 멀티·VRF 에어컨 배관 설계의 첫 단계입니다.</p>
+    <div class="field-row">
+      <div class="field"><label>냉동능력 (kW)</label><input type="number" id="rKw" value="7.1" min="0.5" step="0.1"></div>
+      <div class="field"><label>냉매 배관 길이 (m)</label><input type="number" id="rLen" value="15" min="1" step="0.5"></div>
+      <div class="field"><label>냉매 종류</label>
+        <select id="rRef"><option value="410A">R410A</option><option value="32">R32</option></select>
+      </div>
+      <div class="field"><label>기본 무충진 길이 (m)</label><input type="number" id="rBase" value="7.5" min="0" step="0.5"></div>
+    </div>
+    <div class="btn-row"><button class="btn" id="rCalc" type="button">배관 규격 계산</button></div>
+    <div class="results" id="rResults">
+      <h4>냉매배관 결과</h4>
+      <div class="stat-grid">
+        <div class="stat"><div class="k">액관 규격</div><div class="v" id="rLiquid">—</div></div>
+        <div class="stat"><div class="k">가스관 규격</div><div class="v" id="rGas">—</div></div>
+        <div class="stat hero"><div class="k">추가 냉매 충진량</div><div class="v" id="rCharge">—</div></div>
+        <div class="stat"><div class="k">냉동톤 (RT)</div><div class="v" id="rRt">—</div></div>
+        <div class="stat"><div class="k">권장 에어컨 용량</div><div class="v" id="rHp">—</div></div>
+        <div class="stat"><div class="k">배관 길이 한계</div><div class="v" id="rLimit">—</div></div>
+      </div>
+      <p class="formula">규격표: 3.5kW 이하 액관 6.35mm·가스관 9.52mm, 5.6kW 이하 6.35·12.7mm, 7.1kW 이하 9.52·15.88mm, 10kW 이하 9.52·15.88mm, 14kW 이하 12.7·19.05mm, 16kW 이하 12.7·22.2mm, 그 이상 15.88·25.4mm. 추가 충진량은 기본 길이 초과분 × 20g/m입니다.</p>
+      <p class="note">배관 규격은 제조사와 기종에 따라 다릅니다. 반드시 설치하려는 기기의 설치 매뉴얼을 확인하세요. 배관이 길어지면 냉동능력이 떨어지고 압축기 오일 회수가 나빠지므로, 길이 한계와 고저차를 함께 확인해야 합니다.</p>
+    </div>
+  </div>
+
+  </div><!-- /calc-grid -->
+</section>
+
+<!-- ============ Reference table ============ -->
+<section id="reference">
+  <h2><span class="bar">|</span> 용도별 냉방부하·환기 기준표</h2>
+  <p class="section-sub">건축설비 설계에서 쓰는 용도별 참고값입니다. 냉방부하 단위면적당 값과 기준 환기횟수, 실내 설계온도를 함께 정리했습니다. 정확한 설계는 상세 부하 계산으로 확인하세요.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>용도</th><th>냉방부하 (W/m²)</th><th>난방부하 (W/m²)</th><th>기준 환기횟수 (회/h)</th><th>1인당 환기량 (m³/h·인)</th><th>실내 설계온도 (여름/겨울)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>주택</td><td>130</td><td>90</td><td>1.5</td><td>30</td><td>26°C / 20°C</td></tr>
+        <tr><td>사무실</td><td>180</td><td>110</td><td>2</td><td>30</td><td>26°C / 20°C</td></tr>
+        <tr><td>상가</td><td>200</td><td>110</td><td>2</td><td>30</td><td>26°C / 20°C</td></tr>
+        <tr><td>식당</td><td>220</td><td>120</td><td>4</td><td>30</td><td>26°C / 20°C</td></tr>
+        <tr><td>교실</td><td>160</td><td>100</td><td>3</td><td>30</td><td>26°C / 20°C</td></tr>
+        <tr><td>전산실</td><td>350</td><td>—</td><td>2</td><td>30</td><td>24°C / —</td></tr>
+        <tr><td>병원 병실</td><td>150</td><td>110</td><td>4</td><td>36</td><td>26°C / 22°C</td></tr>
+        <tr><td>호텔 객실</td><td>160</td><td>100</td><td>2</td><td>30</td><td>26°C / 22°C</td></tr>
+        <tr><td>체육관</td><td>190</td><td>120</td><td>3</td><td>30</td><td>26°C / 18°C</td></tr>
+        <tr><td>지하주차장</td><td>—</td><td>—</td><td>6</td><td>—</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">표의 값은 설계 참고용입니다. 단위면적당 부하는 건물의 단열 성능, 창호 면적과 향, 차양, 내부 발열에 따라 크게 달라집니다. 환기량은 실내공기질 관리법과 건축법의 기준을 함께 확인하세요.</p>
+</section>
+
+<!-- ============ Guides ============ -->
+<section id="guides">
+  <h2><span class="bar">|</span> 냉난방공조 실무 가이드</h2>
+  <p class="section-sub">현장에서 바로 쓰는 공조 설비 실무 해설입니다. 각 가이드는 계산식과 시공 절차, 흔한 실수를 함께 다룹니다.</p>
+  <div class="guide-grid">
+    <div class="guide">
+      <div class="g-tag">에어컨</div>
+      <h3>에어컨 설치 실무</h3>
+      <p>에어컨 설치는 위치 선정에서 성능이 결정됩니다. 실내기 위치와 실외기 설치 공간, 냉매 배관 길이와 고저차, 드레인 배수 경로를 정리했습니다. 배관 연결 후 진공 건조와 냉매 충진, 시운전 점검 순서까지 다룹니다. 설치를 잘못하면 냉방이 안 되거나 물이 새는 일이 생깁니다.</p>
+      <p class="guide-link"><a href="guides/air-conditioner-installation.html">전체 가이드 읽기 &rarr;</a></p>
+    </div>
+    <div class="guide">
+      <div class="g-tag">덕트</div>
+      <h3>덕트 설계 기초</h3>
+      <p>덕트는 공기를 실까지 보내는 길입니다. 풍량과 풍속, 압력 손실을 계산해 덕트 치수를 정하는 법, 등압법과 등속법의 차이, 취출구와 흡입구 배치, 소음 대책을 설명합니다. 덕트가 작으면 소음이 나고, 크면 공사비가 늘어납니다.</p>
+      <p class="guide-link"><a href="guides/duct-design-basics.html">전체 가이드 읽기 &rarr;</a></p>
+    </div>
+    <div class="guide">
+      <div class="g-tag">냉매</div>
+      <h3>냉매 충전과 누설 점검</h3>
+      <p>냉매가 부족하면 냉방이 안 되고, 너무 많으면 압축기가 망가집니다. 적정 냉매량 판단법, 게이지 매니폴드 사용법, 진공 건조 절차, 누설 탐지 방법을 정리했습니다. R410A와 R32의 차이와 취급 주의사항도 다룹니다.</p>
+      <p class="guide-link"><a href="guides/refrigerant-charging-leak.html">전체 가이드 읽기 &rarr;</a></p>
+    </div>
+    <div class="guide">
+      <div class="g-tag">결로</div>
+      <h3>결로 대책</h3>
+      <p>결로는 건물과 사람을 동시에 괴롭힙니다. 결로가 생기는 원리, 덕트와 배관의 결로, 창호 결로와 벽체 결로의 대책을 설명합니다. 단열과 기밀, 환기의 균형이 결로 해결의 핵심입니다. 결로를 방치하면 곰팡이와 부식으로 이어집니다.</p>
+      <p class="guide-link"><a href="guides/condensation-prevention.html">전체 가이드 읽기 &rarr;</a></p>
+    </div>
+    <div class="guide">
+      <div class="g-tag">유지관리</div>
+      <h3>필터와 열교환기 관리</h3>
+      <p>필터가 막히면 바람이 약해지고 전기요금이 늘어납니다. 필터 청소 주기와 방법, 열교환기 세척, 드레인 팬 관리, 송풍기 점검을 정리했습니다. 정기 관리만 잘해도 냉방 효율이 크게 달라집니다.</p>
+      <p class="guide-link"><a href="guides/filter-maintenance.html">전체 가이드 읽기 &rarr;</a></p>
+    </div>
+    <div class="guide">
+      <div class="g-tag">시스템</div>
+      <h3>VRF 시스템 이해</h3>
+      <p>VRF는 여러 대의 실내기를 한 대의 실외기로 운전하는 시스템입니다. VRF의 원리와 장단점, 배관 설계와 분기관 설치, 동시 운전율, 시운전 절차를 설명합니다. 대형 건물과 상가에서 가장 많이 쓰는 방식입니다.</p>
+      <p class="guide-link"><a href="guides/vrf-system-guide.html">전체 가이드 읽기 &rarr;</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section id="faq">
+  <h2><span class="bar">|</span> 자주 묻는 질문</h2>
+  <p class="section-sub">냉난방공조 현장에서 가장 자주 묻는 질문들입니다.</p>
+  <div class="faq">
+    <div class="faq-item">
+      <button type="button">에어컨 용량은 어떻게 정하나요? <span class="chev">+</span></button>
+      <div class="answer">냉방부하를 계산한 뒤 그보다 큰 표준 용량을 고릅니다. 부하가 7.6kW라면 8kW급(3.5마력 정도)을 선택합니다. 용량이 작으면 더운 날 냉방이 안 되고, 너무 크면 운전이 자주 끊겨 습도 조절이 안 되고 전기요금이 늘어납니다. 위의 냉방부하 계산기에 면적과 용도를 입력하면 필요 용량이 바로 나옵니다.</div>
+    </div>
+    <div class="faq-item">
+      <button type="button">덕트 풍속 기준은 어떻게 되나요? <span class="chev">+</span></button>
+      <div class="answer">주덕트는 5~8 m/s, 지덕트는 3~5 m/s, 취출구는 2~3 m/s가 일반적입니다. 풍속이 높으면 소음과 압력 손실이 커지고, 낮으면 덕트 치수가 커져 공사비가 늘어납니다. 사무실처럼 조용한 곳은 낮은 쪽, 공장처럼 소음이 덜 문제되는 곳은 높은 쪽을 씁니다.</div>
+    </div>
+    <div class="faq-item">
+      <button type="button">환기량은 어떻게 정하나요? <span class="chev">+</span></button>
+      <div class="answer">체적 기준(체적 × 기준 환기횟수)과 인원 기준(인원 × 30 m³/h) 중 큰 값을 씁니다. 사무실은 2회/h, 교실은 3회/h, 식당은 4회/h가 기준입니다. 인원이 많은 곳에서는 인원 기준이 더 커지므로 인원 수를 정확히 파악하는 것이 중요합니다.</div>
+    </div>
+    <div class="faq-item">
+      <button type="button">냉매를 얼마나 더 넣어야 하나요? <span class="chev">+</span></button>
+      <div class="answer">기본 무충진 길이를 초과한 배관 길이만큼 추가합니다. 보통 초과 1m당 20g을 넣습니다. 배관 길이가 15m이고 기본 길이가 7.5m라면 초과분 7.5m × 20g = 150g을 추가합니다. 정확한 값은 기기 제조사의 설치 매뉴얼을 확인하세요.</div>
+    </div>
+    <div class="faq-item">
+      <button type="button">결로는 왜 생기나요? <span class="chev">+</span></button>
+      <div class="answer">공기가 노점 이하로 차가워지면 공기 중의 수증기가 물방울로 맺힙니다. 차가운 덕트나 배관 표면, 창호 표면에서 결로가 생기는 이유입니다. 대책은 단열을 두껍게 해 표면 온도를 노점 이상으로 올리고, 환기로 실내 습도를 낮추는 것입니다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ About ============ -->
+<section id="about">
+  <div class="about">
+    <h2><span class="bar">|</span> 냉난방공조 허브 소개</h2>
+    <p>냉난방공조 허브는 공조 설비 현장의 기술자, 설계 실무자, 설비기사 수험생을 위한 무료 참고 사이트입니다. 계산은 KS 기준과 건축설비 설계 기준의 공식을 따르며, 서울 설계 외기온도(겨울 -11°C, 여름 32°C)를 기준으로 합니다.</p>
+    <p><strong>면책:</strong> 모든 계산 결과는 참고용 추정치입니다. 실제 설계에서는 기기 제조사의 자료, 최신 건축설비 기준과 실내공기질 관련 법규를 반드시 확인하고, 자격을 갖춘 설비기술자의 판단에 따라야 합니다. 본 사이트는 계산 결과를 근거로 한 작업에 대해 책임을 지지 않습니다.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <h4>냉난방공조 허브</h4>
+        <p>공조 설비 현장과 설계를 위한 무료 계산기. KS·건축설비 기준 · 설계 외기온도 -11°C / 32°C.</p>
+        <p style="margin-top:8px">hvaccalc.github.io/</p>
+      </div>
+      <div>
+        <h4>계산기</h4>
+        <ul>
+          <li><a href="#calc-cool">냉방부하</a></li>
+          <li><a href="#calc-heat">난방부하</a></li>
+          <li><a href="#calc-duct">덕트 풍량·풍속</a></li>
+          <li><a href="#calc-vent">환기량·환기횟수</a></li>
+          <li><a href="#calc-ref">냉매배관·냉동능력</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>사이트</h4>
+        <ul>
+          <li><a href="#" data-modal="privacyModal">개인정보처리방침</a></li>
+          <li><a href="#" data-modal="aboutModal">소개</a></li>
+          <li><a href="#" data-modal="contactModal">문의</a></li>
+          <li><a href="#faq">자주 묻는 질문</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="copy">© 2026 냉난방공조 허브 · 모든 계산은 브라우저 안에서 처리됩니다 · 결과는 추정치입니다 — 제조사 자료와 건축설비 기준으로 확인하세요.</div>
+  </div>
+</footer>
+
+<!-- Modals -->
+<div class="modal-backdrop" id="privacyModal">
+  <div class="modal">
+    <button class="close-x" data-close aria-label="닫기">×</button>
+    <h3>개인정보처리방침</h3>
+    <p>냉난방공조 허브는 정적 웹사이트입니다. 개인정보를 수집·저장·전송하지 않습니다. 계산기 입력값은 브라우저 안에서만 처리되며 서버로 전송되지 않습니다.</p>
+    <p>본 사이트는 자체 쿠키와 분석 도구를 사용하지 않습니다. 향후 광고가 게재될 경우 제3자 업체가 쿠키를 사용할 수 있으며, 맞춤형 광고는 브라우저 설정이나 업체의 광고 설정에서 거부할 수 있습니다.</p>
+  </div>
+</div>
+<div class="modal-backdrop" id="aboutModal">
+  <div class="modal">
+    <button class="close-x" data-close aria-label="닫기">×</button>
+    <h3>냉난방공조 허브 소개</h3>
+    <p>냉난방공조 허브는 공조 설비와 관련된 무료 브라우저 기반 계산기를 제공합니다. 냉방부하와 난방부하, 덕트 풍량과 풍속, 환기량과 환기횟수, 냉매배관과 냉동능력을 계산합니다.</p>
+    <p>계산은 KS 기준과 건축설비 설계 기준의 공식을 따르며, 서울 설계 외기온도를 기준으로 합니다. 본 사이트는 참고 자료이며 제조사 문서와 자격을 갖춘 설비기술자를 대신하지 않습니다.</p>
+  </div>
+</div>
+<div class="modal-backdrop" id="contactModal">
+  <div class="modal">
+    <button class="close-x" data-close aria-label="닫기">×</button>
+    <h3>문의</h3>
+    <p>계산값이 틀렸거나 추가하고 싶은 계산기가 있으면 이 사이트의 GitHub 저장소 <strong>github.com/motorwindinghub/hvac-hub</strong>에 이슈를 남겨 주세요. 검토 후 반영하겠습니다.</p>
+    <p>현장 방문이 필요한 설비 문제는 보내지 마세요. 실제 작업은 반드시 지역의 자격 있는 설비기술자에게 의뢰하세요.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+'use strict';
+
+/* ================= Pure math ================= */
+var HP_SIZES = [1, 1.5, 2, 2.5, 3, 4, 5, 7.5, 10];
+var BOILER_SIZES = [2, 3, 5, 7, 10, 15, 20, 30, 50];
+var RT_KW = 3.517; /* 1 RT = 3.517 kW */
+
+function nextSize(list, need) {
+  for (var i = 0; i < list.length; i++) if (list[i] >= need) return list[i];
+  return list[list.length - 1];
+}
+
+function calcCooling(area, unitW, people, equipKw, windowM2, safetyPct) {
+  var areaLoad = area * unitW / 1000;         /* kW */
+  var peopleLoad = people * 0.12;             /* 120 W per person */
+  var solarLoad = windowM2 * 0.25;            /* 250 W per m2 of window */
+  var subtotal = areaLoad + peopleLoad + equipKw + solarLoad;
+  var total = subtotal * (1 + safetyPct / 100);
+  var hp = nextSize(HP_SIZES, total / 2.5);
+  return { totalKw: total, rt: total / RT_KW, hp: hp,
+    areaLoad: areaLoad, peopleLoad: peopleLoad, solarLoad: solarLoad,
+    equipKw: equipKw };
+}
+
+function calcHeating(area, height, u, tempIn, tempOut, ach) {
+  var side = Math.sqrt(area);
+  var wallArea = 4 * side * height;
+  var envArea = wallArea + area + area;       /* walls + ceiling + floor */
+  var dt = tempIn - tempOut;
+  var envLoss = u * envArea * dt / 1000;      /* kW */
+  var vol = area * height;
+  var ventLoss = 0.33 * ach * vol * dt / 1000; /* kW */
+  var total = envLoss + ventLoss;
+  var boiler = nextSize(BOILER_SIZES, total);
+  return { totalKw: total, envLoss: envLoss, ventLoss: ventLoss,
+    boilerKw: boiler, perM2: total * 1000 / area, vol: vol, envArea: envArea };
+}
+
+function calcDuct(cmh, shape, wMm, hMm) {
+  var cms = cmh / 3600;
+  var areaM2, eqDiaMm;
+  if (shape === 'round') {
+    var d = hMm / 1000;
+    areaM2 = Math.PI * Math.pow(d / 2, 2);
+    eqDiaMm = hMm;
+  } else {
+    areaM2 = (wMm / 1000) * (hMm / 1000);
+    eqDiaMm = 1.3 * Math.pow(wMm * hMm, 0.625) / Math.pow(wMm + hMm, 0.25);
+  }
+  var vel = cms / areaM2;
+  var needArea = cms / 5;                     /* at target 5 m/s */
+  var recW = 400, recH = Math.ceil(needArea * 1e6 / recW / 50) * 50;
+  if (recH < 150) recH = 150;
+  return { vel: vel, areaM2: areaM2, cms: cms, needArea: needArea,
+    recW: recW, recH: recH, eqDiaMm: eqDiaMm };
+}
+
+function calcVent(area, height, people, achBase) {
+  var vol = area * height;
+  var byVol = vol * achBase;
+  var byPeople = people * 30;
+  var total = Math.max(byVol, byPeople);
+  var ach = total / vol;
+  return { totalCmh: total, vol: vol, byVol: byVol, byPeople: byPeople,
+    ach: ach, perPerson: people > 0 ? total / people : 0 };
+}
+
+var PIPE_TABLE = [
+  { maxKw: 3.5, liquid: '6.35 mm (1/4")', gas: '9.52 mm (3/8")' },
+  { maxKw: 5.6, liquid: '6.35 mm (1/4")', gas: '12.7 mm (1/2")' },
+  { maxKw: 7.1, liquid: '9.52 mm (3/8")', gas: '15.88 mm (5/8")' },
+  { maxKw: 10, liquid: '9.52 mm (3/8")', gas: '15.88 mm (5/8")' },
+  { maxKw: 14, liquid: '12.7 mm (1/2")', gas: '19.05 mm (3/4")' },
+  { maxKw: 16, liquid: '12.7 mm (1/2")', gas: '22.2 mm (7/8")' },
+  { maxKw: 999, liquid: '15.88 mm (5/8")', gas: '25.4 mm (1")' }
+];
+
+function calcRefrigerant(kw, lenM, baseLenM) {
+  var row = PIPE_TABLE[PIPE_TABLE.length - 1];
+  for (var i = 0; i < PIPE_TABLE.length; i++) {
+    if (kw <= PIPE_TABLE[i].maxKw) { row = PIPE_TABLE[i]; break; }
+  }
+  var extra = Math.max(0, lenM - baseLenM);
+  var chargeG = extra * 20;
+  var limit = kw <= 7.1 ? '30 m (고저차 15 m)' : kw <= 14 ? '50 m (고저차 20 m)' : '75 m (고저차 30 m)';
+  return { liquid: row.liquid, gas: row.gas, chargeG: chargeG,
+    rt: kw / RT_KW, hp: nextSize(HP_SIZES, kw / 2.5), limit: limit };
+}
+
+window.HH = { calcCooling: calcCooling, calcHeating: calcHeating,
+  calcDuct: calcDuct, calcVent: calcVent, calcRefrigerant: calcRefrigerant,
+  nextSize: nextSize };
+
+/* ================= DOM wiring ================= */
+function $(id) { return document.getElementById(id); }
+function num(id, def) { var v = parseFloat($(id).value); return isNaN(v) ? def : v; }
+function fmt(n, dec) {
+  if (n === null || n === undefined || !isFinite(n)) return '—';
+  return Number(n).toLocaleString('ko-KR', { minimumFractionDigits: dec === undefined ? 2 : dec, maximumFractionDigits: dec === undefined ? 2 : dec });
+}
+var toastTimer = null;
+function showToast(msg) {
+  var t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3200);
+}
+function needOk(vals) {
+  for (var i = 0; i < vals.length; i++) if (!(vals[i] > 0)) { showToast('양의 값을 모두 입력해 주세요.'); return false; }
+  return true;
+}
+
+/* --- 1. Cooling --- */
+$('cCalc').addEventListener('click', function () {
+  var area = num('cArea', 0), unit = parseFloat($('cUse').value);
+  var people = num('cPeople', 0), equip = num('cEquip', 0);
+  var win = num('cWindow', 0), safety = num('cSafety', 0);
+  if (!needOk([area])) return;
+  var r = calcCooling(area, unit, people, equip, win, safety);
+  $('cKw').textContent = fmt(r.totalKw, 2) + ' kW';
+  $('cRt').textContent = fmt(r.rt, 2) + ' RT';
+  $('cHp').textContent = r.hp + ' HP (' + fmt(r.hp * 2.5, 1) + ' kW급)';
+  $('cAreaLoad').textContent = fmt(r.areaLoad, 2) + ' kW';
+  $('cPeopleLoad').textContent = fmt(r.peopleLoad, 2) + ' kW';
+  $('cSolarLoad').textContent = fmt(r.solarLoad, 2) + ' kW';
+  $('cResults').classList.add('show');
+});
+
+/* --- 2. Heating --- */
+$('hCalc').addEventListener('click', function () {
+  var area = num('hArea', 0), height = num('hHeight', 0);
+  var u = parseFloat($('hU').value);
+  var tIn = num('hIn', 0), tOut = parseFloat($('hOut').value);
+  var ach = num('hAch', 0);
+  if (!needOk([area, height])) return;
+  if (tIn <= tOut) { showToast('실내 온도는 외기 온도보다 높아야 합니다.'); return; }
+  var r = calcHeating(area, height, u, tIn, tOut, ach);
+  $('hKw').textContent = fmt(r.totalKw, 2) + ' kW';
+  $('hEnv').textContent = fmt(r.envLoss, 2) + ' kW';
+  $('hVent').textContent = fmt(r.ventLoss, 2) + ' kW';
+  $('hBoiler').textContent = r.boilerKw + ' kW';
+  $('hPerM2').textContent = fmt(r.perM2, 0) + ' W/m²';
+  $('hVol').textContent = fmt(r.vol, 1) + ' m³';
+  $('hResults').classList.add('show');
+});
+
+/* --- 3. Duct --- */
+$('dCalc').addEventListener('click', function () {
+  var cmh = num('dCmh', 0), shape = $('dShape').value;
+  var w = num('dW', 0), h = num('dH', 0);
+  if (!needOk([cmh, w, h])) return;
+  var r = calcDuct(cmh, shape, w, h);
+  $('dVel').textContent = fmt(r.vel, 2) + ' m/s';
+  $('dArea').textContent = fmt(r.areaM2, 3) + ' m²';
+  $('dCms').textContent = fmt(r.cms, 3) + ' m³/s';
+  $('dNeedArea').textContent = fmt(r.needArea, 3) + ' m²';
+  $('dRec').textContent = r.recW + ' × ' + r.recH + ' mm';
+  $('dEqDia').textContent = fmt(r.eqDiaMm, 0) + ' mm';
+  var verdict = $('dVerdict');
+  if (r.vel >= 5 && r.vel <= 8) {
+    verdict.className = 'verdict ok';
+    verdict.textContent = '적정 — 주덕트 기준 풍속(5~8 m/s)에 들어갑니다.';
+  } else if (r.vel >= 3 && r.vel < 5) {
+    verdict.className = 'verdict ok';
+    verdict.textContent = '적정 — 지덕트 기준 풍속(3~5 m/s)에 들어갑니다. 주덕트로 쓰려면 덕트를 키워 풍속을 낮추세요.';
+  } else if (r.vel < 3) {
+    verdict.className = 'verdict warn';
+    verdict.textContent = '풍속이 낮습니다 — 덕트가 필요보다 큽니다. 공사비를 줄이려면 덕트를 줄여 풍속을 3~5 m/s로 맞추세요.';
+  } else {
+    verdict.className = 'verdict bad';
+    verdict.textContent = '풍속이 높습니다 — 소음과 압력 손실이 큽니다. 덕트를 키워 풍속을 8 m/s 이하로 낮추세요.';
+  }
+  $('dResults').classList.add('show');
+});
+
+/* --- 4. Ventilation --- */
+$('vCalc').addEventListener('click', function () {
+  var area = num('vArea', 0), height = num('vHeight', 0);
+  var people = num('vPeople', 0), achBase = parseFloat($('vUse').value);
+  if (!needOk([area, height])) return;
+  var r = calcVent(area, height, people, achBase);
+  $('vCmh').textContent = fmt(r.totalCmh, 0) + ' CMH';
+  $('vVol').textContent = fmt(r.vol, 1) + ' m³';
+  $('vByVol').textContent = fmt(r.byVol, 0) + ' CMH';
+  $('vByPeople').textContent = fmt(r.byPeople, 0) + ' CMH';
+  $('vAch').textContent = fmt(r.ach, 1) + ' 회/h';
+  $('vPerPerson').textContent = people > 0 ? fmt(r.perPerson, 0) + ' m³/h·인' : '—';
+  $('vResults').classList.add('show');
+});
+
+/* --- 5. Refrigerant --- */
+$('rCalc').addEventListener('click', function () {
+  var kw = num('rKw', 0), len = num('rLen', 0), base = num('rBase', 0);
+  if (!needOk([kw, len])) return;
+  var r = calcRefrigerant(kw, len, base);
+  $('rLiquid').textContent = r.liquid;
+  $('rGas').textContent = r.gas;
+  $('rCharge').textContent = fmt(r.chargeG, 0) + ' g';
+  $('rRt').textContent = fmt(r.rt, 2) + ' RT';
+  $('rHp').textContent = r.hp + ' HP';
+  $('rLimit').textContent = r.limit;
+  $('rResults').classList.add('show');
+});
+
+/* --- FAQ accordion --- */
+document.querySelectorAll('.faq-item button').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var item = btn.parentElement;
+    var wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(function (i) { i.classList.remove('open'); });
+    if (!wasOpen) item.classList.add('open');
+  });
+});
+
+/* --- Modals --- */
+document.querySelectorAll('[data-modal]').forEach(function (link) {
+  link.addEventListener('click', function (e) {
+    e.preventDefault();
+    $(link.getAttribute('data-modal')).classList.add('show');
+  });
+});
+document.querySelectorAll('.modal-backdrop').forEach(function (bd) {
+  bd.addEventListener('click', function (e) { if (e.target === bd) bd.classList.remove('show'); });
+  bd.querySelectorAll('[data-close]').forEach(function (b) {
+    b.addEventListener('click', function () { bd.classList.remove('show'); });
+  });
+});
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-backdrop.show').forEach(function (bd) { bd.classList.remove('show'); });
+});
+})();
+</script>
+</body>
+</html>
